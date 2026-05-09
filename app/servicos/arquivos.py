@@ -200,3 +200,31 @@ def verificar_ou_criar_estrutura():
                 pastas_criadas.append(str(caminho_subpasta))
 
     return pastas_criadas
+
+def estrutura_existe():
+    pasta_base = obter_pasta_base()
+
+    pastas_obrigatorias = [
+        "01_ADMINISTRATIVO",
+        "02_FINANCEIRO",
+        "03_RH",
+        "04_FISCAL_CONTABIL",
+        "05_COMERCIAL",
+        "06_LOGISTICA",
+        "07_QUALIDADE",
+        "08_CONTRATOS",
+        "09_RELATORIOS",
+        "10_MODELOS",
+        "11_DIGITALIZADOS",
+        "12_BACKUP_LOCAL",
+        "99_TEMPORARIO"
+    ]
+
+    if not pasta_base.exists():
+        return False
+
+    for pasta in pastas_obrigatorias:
+        if not (pasta_base / pasta).exists():
+            return False
+
+    return True

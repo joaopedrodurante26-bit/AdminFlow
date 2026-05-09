@@ -2,10 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 
 from app.setores.rh import abrir_cadastro_funcionario
-from app.setores.configuracoes import (
-    abrir_configurar_pasta_base,
-    abrir_verificar_estrutura
-)
+from app.setores.configuracoes import abrir_configurar_pasta_base, abrir_verificar_estrutura
+from app.servicos.arquivos import estrutura_existe, verificar_ou_criar_estrutura
 
 
 APP_NAME = "AdminFlow"
@@ -19,6 +17,7 @@ class AdminFlowApp:
         self.root.geometry("800x500")
         self.root.minsize(700, 450)
 
+        self.verificar_estrutura_inicial()
         self.criar_tela_principal()
 
     def limpar_tela(self):
@@ -178,6 +177,31 @@ class AdminFlowApp:
             "Em desenvolvimento",
             "Esta função ainda será implementada."
         )
+
+    def verificar_estrutura_inicial(self):
+        if estrutura_existe():
+            return
+
+        resposta = messagebox.askyesno(
+            "Estrutura não encontrada",
+            "A estrutura principal de pastas da empresa ainda não foi encontrada.\n\n"
+            "Deseja criar a estrutura padrão agora?"
+        )
+
+        if resposta:
+            try:
+                pastas_criadas = verificar_ou_criar_estrutura()
+
+                messagebox.showinfo(
+                    "Estrutura criada",
+                    f"Estrutura criada com sucesso.\n\nTotal de pastas criadas: {len(pastas_criadas)}"
+                )
+
+            except Exception as erro:
+                messagebox.showerror(
+                    "Erro ao criar estrutura",
+                    f"Não foi possível criar a estrutura de pastas:\n\n{erro}"
+                )
 
 
 def main():
