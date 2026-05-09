@@ -77,6 +77,12 @@ def validar_dados_funcionario(dados, documentos):
         if not valor:
             return False, f"O campo '{campo}' é obrigatório."
 
+    if dados["Setor"] == "Selecione":
+        return False, "Selecione o setor do funcionário."
+
+    if dados["Jornada de trabalho"] == "Selecione":
+        return False, "Selecione a jornada de trabalho do funcionário."
+
     nome = dados["Nome completo"].strip()
 
     if len(nome.split()) < 2:

@@ -80,6 +80,44 @@ def abrir_cadastro_funcionario(root):
             pady=6
         )
 
+    if label == "Setor":
+        valor_setor = tk.StringVar(value="Selecione")
+
+        entrada = tk.OptionMenu(
+            frame_form,
+            valor_setor,
+            "Produção",
+            "Logística",
+            "Administrativo",
+            "Financeiro",
+            "Fiscal",
+            "Qualidade",
+            "Comercial",
+            "RH"
+        )
+        entrada.grid(row=i, column=1, sticky="w", padx=10, pady=6)
+
+        campos[label] = valor_setor
+
+    elif label == "Jornada de trabalho":
+        valor_jornada = tk.StringVar(value="Selecione")
+
+        entrada = tk.OptionMenu(
+            frame_form,
+            valor_jornada,
+            "07:00 às 17:00",
+            "08:00 às 17:00",
+            "08:00 às 18:00",
+            "12x36",
+            "Turno da manhã",
+            "Turno da tarde",
+            "Turno da noite"
+        )
+        entrada.grid(row=i, column=1, sticky="w", padx=10, pady=6)
+
+        campos[label] = valor_jornada
+
+    else:
         entrada = tk.Entry(frame_form, width=45)
         entrada.grid(row=i, column=1, padx=10, pady=6)
 
@@ -167,8 +205,8 @@ def abrir_cadastro_funcionario(root):
     def validar_campos():
         dados = {}
 
-        for nome_campo, entrada in campos.items():
-            dados[nome_campo] = entrada.get().strip()
+        for nome_campo, campo in campos.items():
+            dados[nome_campo] = campo.get().strip()
 
         caminhos_documentos = [
             item["caminho"] for item in documentos_selecionados
