@@ -3,9 +3,7 @@ from datetime import datetime
 import shutil
 
 from app.servicos.logs import registrar_log
-
-
-PASTA_BASE = Path.home() / "Documents" / "EMPRESA_AGUA_MINERAL"
+from app.servicos.configuracoes import obter_pasta_base
 
 
 def normalizar_nome(nome):
@@ -33,6 +31,8 @@ def gerar_nome_documento(data_cadastro, nome_funcionario, tipo_documento, caminh
     return f"{data_cadastro}_{tipo}_{nome_funcionario}_{contador:02d}{extensao}"
 
 def criar_pasta_funcionario(dados, documentos):
+    PASTA_BASE = obter_pasta_base()
+    
     nome_funcionario = normalizar_nome(dados["Nome completo"])
     data_cadastro = datetime.now().strftime("%Y-%m-%d")
     data_hora = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
