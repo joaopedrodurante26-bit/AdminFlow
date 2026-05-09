@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
+
 from app.setores.rh import abrir_cadastro_funcionario
+from app.setores.configuracoes import abrir_configurar_pasta_base
 
 
 APP_NAME = "AdminFlow"
@@ -163,7 +165,7 @@ class AdminFlowApp:
 
     def abrir_configuracoes(self):
         acoes = [
-            ("Configurar pasta base", self.acao_em_desenvolvimento),
+            ("Configurar pasta base", lambda: abrir_configurar_pasta_base(self.root)),
             ("Verificar estrutura de pastas", self.acao_em_desenvolvimento),
         ]
         self.criar_tela_setor("Configurações", acoes)
