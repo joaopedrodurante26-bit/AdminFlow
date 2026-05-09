@@ -23,6 +23,12 @@ def normalizar_nome(nome):
 
     return nome.replace(" ", "_")
 
+def gerar_nome_documento(data_cadastro, nome_funcionario, tipo_documento, caminho_origem, contador):
+    extensao = caminho_origem.suffix.lower()
+
+    tipo = normalizar_nome(tipo_documento)
+
+    return f"{data_cadastro}_{tipo}_{nome_funcionario}_{contador:02d}{extensao}"
 
 def criar_pasta_funcionario(dados, documentos):
     nome_funcionario = normalizar_nome(dados["Nome completo"])
@@ -63,14 +69,23 @@ def criar_pasta_funcionario(dados, documentos):
 
             arquivo.write(f"\nData de criação do cadastro: {data_cadastro}\n")
 
-        for documento in documentos:
+        for contador, documento in enumerate(documentos, start=1):
             origem = Path(documento["caminho"])
 
             if not origem.exists():
                 raise FileNotFoundError(f"Documento não encontrado: {origem}")
 
             pasta_destino = pasta_temp / documento["destino"]
-            destino = pasta_destino / origem.name
+
+            novo_nome = gerar_nome_documento(
+                data_cadastro=data_cadastro,
+                nome_funcionario=nome_funcionario,
+                tipo_documento=documento["tipo"],
+                caminho_origem=origem,
+                contador=contador
+            )
+
+            destino = pasta_destino / novo_nome
 
             shutil.copy2(origem, destino)
 
