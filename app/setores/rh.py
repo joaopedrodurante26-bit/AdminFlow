@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 
 from app.servicos.arquivos import criar_pasta_funcionario
+from app.servicos.validacao import validar_dados_funcionario
 
 
 def abrir_cadastro_funcionario(root):
@@ -75,22 +76,12 @@ def abrir_cadastro_funcionario(root):
         dados = {}
 
         for nome_campo, entrada in campos.items():
-            valor = entrada.get().strip()
+            dados[nome_campo] = entrada.get().strip()
 
-            if not valor:
-                messagebox.showerror(
-                    "Erro de validação",
-                    f"O campo '{nome_campo}' é obrigatório."
-                )
-                return None
+        valido, mensagem = validar_dados_funcionario(dados, documentos_selecionados)
 
-            dados[nome_campo] = valor
-
-        if not documentos_selecionados:
-            messagebox.showerror(
-                "Erro de validação",
-                "É necessário anexar pelo menos um documento."
-            )
+        if not valido:
+            messagebox.showerror("Erro de validação", mensagem)
             return None
 
         return dados
