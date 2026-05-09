@@ -21,6 +21,33 @@ def abrir_cadastro_funcionario(root):
     janela.title("Cadastrar Funcionário")
     janela.geometry("750x650")
     janela.minsize(700, 550)
+    
+    def existe_progresso():
+        for entrada in campos.values():
+            if entrada.get().strip():
+                return True
+
+        if documentos_selecionados:
+            return True
+
+        return False
+
+    def ao_fechar_janela():
+        if not existe_progresso():
+            janela.destroy()
+            return
+
+        resposta = messagebox.askyesno(
+            "Cancelar cadastro",
+            "Há informações preenchidas ou documentos anexados.\n\n"
+            "Se você fechar esta janela, o cadastro será cancelado.\n\n"
+            "Deseja realmente sair?"
+        )
+
+        if resposta:
+            janela.destroy()
+    
+    janela.protocol("WM_DELETE_WINDOW", ao_fechar_janela)
 
     documentos_selecionados = []
     campos = {}
