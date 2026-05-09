@@ -2,6 +2,8 @@ from pathlib import Path
 from datetime import datetime
 import shutil
 
+from app.servicos.logs import registrar_log
+
 
 PASTA_BASE = Path.home() / "Documents" / "EMPRESA_AGUA_MINERAL"
 
@@ -88,12 +90,14 @@ def criar_pasta_funcionario(dados, documentos):
             destino = pasta_destino / novo_nome
 
             shutil.copy2(origem, destino)
+            registrar_log(f"Documento arquivado: {destino.name} | Destino: {pasta_destino}")
 
         pasta_rh.mkdir(parents=True, exist_ok=True)
         shutil.move(str(pasta_temp), str(pasta_final))
+        registrar_log(f"Funcionário cadastrado: {nome_funcionario} | Pasta criada: {pasta_final}")
 
-    except Exception:
+    except Exception as erro:
         if pasta_temp.exists():
             shutil.rmtree(pasta_temp)
-
+        registrar_log(f"ERRO no cadastro de funcionário: {erro}")
         raise
