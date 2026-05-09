@@ -4,6 +4,7 @@ from tkinter import messagebox
 from app.setores.rh import abrir_cadastro_funcionario
 from app.setores.configuracoes import abrir_configurar_pasta_base, abrir_verificar_estrutura
 from app.servicos.arquivos import estrutura_existe, verificar_ou_criar_estrutura
+from app.setores.financeiro import abrir_arquivar_comprovante
 
 
 APP_NAME = "AdminFlow"
@@ -118,7 +119,7 @@ class AdminFlowApp:
 
     def abrir_financeiro(self):
         acoes = [
-            ("Arquivar comprovante", self.acao_em_desenvolvimento),
+            ("Arquivar comprovante", lambda: abrir_arquivar_comprovante(self.root)),
             ("Registrar conta a pagar", self.acao_em_desenvolvimento),
             ("Registrar conta a receber", self.acao_em_desenvolvimento),
             ("Arquivar extrato bancário", self.acao_em_desenvolvimento)
