@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
 
-from app.servicos.financeiro_arquivos import arquivar_comprovante
-from app.servicos.financeiro_validacao import validar_dados_comprovante
+from AdminFlow.app.servicos.financeiro.financeiro_arquivos import arquivar_comprovante
+from AdminFlow.app.servicos.financeiro.financeiro_validacao import validar_dados_comprovante
 
 
 TIPOS_COMPROVANTE = [

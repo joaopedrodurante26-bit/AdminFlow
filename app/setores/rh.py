@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
 
-from app.servicos.arquivos import criar_pasta_funcionario
-from app.servicos.validacao import validar_dados_funcionario
+from AdminFlow.app.servicos.rh.rh_arquivos import criar_pasta_funcionario
+from AdminFlow.app.servicos.rh.rh_validacao import validar_dados_funcionario
 
 
 TIPOS_DOCUMENTO = {

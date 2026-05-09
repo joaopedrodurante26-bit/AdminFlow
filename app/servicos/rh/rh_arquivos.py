@@ -3,7 +3,7 @@ from datetime import datetime
 import shutil
 
 from app.servicos.logs import registrar_log
-from app.servicos.configuracoes import obter_pasta_base
+from AdminFlow.app.servicos.configuracoes.configuracoes import obter_pasta_base
 
 
 def normalizar_nome(nome):
