@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from app.setores.rh import abrir_cadastro_funcionario
 
 
 APP_NAME = "AdminFlow"
@@ -103,7 +104,7 @@ class AdminFlowApp:
 
     def abrir_rh(self):
         acoes = [
-            ("Cadastrar funcionário", self.acao_em_desenvolvimento),
+            ("Cadastrar funcionário", lambda: abrir_cadastro_funcionario(self.root)),
             ("Arquivar folha de ponto", self.acao_em_desenvolvimento),
             ("Registrar férias", self.acao_em_desenvolvimento),
             ("Registrar advertência", self.acao_em_desenvolvimento),
