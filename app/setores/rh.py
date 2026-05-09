@@ -155,20 +155,7 @@ def abrir_cadastro_funcionario(root):
 
         return dados
 
-    def finalizar_cadastro():
-        dados = validar_campos()
-
-        if dados is None:
-            return
-
-        confirmar = messagebox.askyesno(
-            "Confirmar cadastro",
-            "Todos os dados foram preenchidos e validados.\n\nDeseja criar a pasta do funcionário?"
-        )
-
-        if not confirmar:
-            return
-
+    def executar_cadastro(dados):
         try:
             criar_pasta_funcionario(dados, documentos_selecionados)
 
@@ -190,6 +177,84 @@ def abrir_cadastro_funcionario(root):
                 "Erro inesperado",
                 f"Ocorreu um erro ao cadastrar o funcionário:\n\n{erro}"
             )
+
+    def exibir_resumo_confirmacao(dados):
+        janela_resumo = tk.Toplevel(janela)
+        janela_resumo.title("Confirmar Cadastro")
+        janela_resumo.geometry("650x500")
+        janela_resumo.minsize(600, 450)
+
+        titulo = tk.Label(
+            janela_resumo,
+            text="Resumo do Cadastro",
+            font=("Arial", 16, "bold")
+        )
+        titulo.pack(pady=15)
+
+        caixa_texto = tk.Text(
+            janela_resumo,
+            width=75,
+            height=20,
+            wrap="word"
+        )
+        caixa_texto.pack(padx=15, pady=10)
+
+        caixa_texto.insert(tk.END, "DADOS DO FUNCIONÁRIO\n")
+        caixa_texto.insert(tk.END, "=" * 40 + "\n\n")
+
+        for campo, valor in dados.items():
+            caixa_texto.insert(tk.END, f"{campo}: {valor}\n")
+
+        caixa_texto.insert(tk.END, "\nDOCUMENTOS ANEXADOS\n")
+        caixa_texto.insert(tk.END, "=" * 40 + "\n\n")
+
+        for documento in documentos_selecionados:
+            nome_arquivo = Path(documento["caminho"]).name
+            tipo = documento["tipo"]
+            destino = documento["destino"]
+
+            caixa_texto.insert(
+                tk.END,
+                f"- {tipo}: {nome_arquivo} → {destino}\n"
+            )
+
+        caixa_texto.config(state="disabled")
+
+        def confirmar():
+            janela_resumo.destroy()
+            executar_cadastro(dados)
+
+        def cancelar():
+            janela_resumo.destroy()
+
+        frame_botoes = tk.Frame(janela_resumo)
+        frame_botoes.pack(pady=10)
+
+        botao_confirmar = tk.Button(
+            frame_botoes,
+            text="Confirmar e cadastrar",
+            width=25,
+            height=2,
+            command=confirmar
+        )
+        botao_confirmar.grid(row=0, column=0, padx=10)
+
+        botao_cancelar = tk.Button(
+            frame_botoes,
+            text="Voltar e corrigir",
+            width=25,
+            height=2,
+            command=cancelar
+        )
+        botao_cancelar.grid(row=0, column=1, padx=10)
+
+    def finalizar_cadastro():
+        dados = validar_campos()
+
+        if dados is None:
+            return
+
+        exibir_resumo_confirmacao(dados)
 
     frame_botoes_docs = tk.Frame(janela)
     frame_botoes_docs.pack(pady=10)
