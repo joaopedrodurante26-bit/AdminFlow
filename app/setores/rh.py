@@ -283,6 +283,24 @@ def abrir_cadastro_funcionario(root):
 
         exibir_resumo_confirmacao(dados)
 
+    def limpar_formulario():
+        if not existe_progresso():
+            return
+
+        resposta = messagebox.askyesno(
+            "Limpar formulário",
+            "Deseja apagar todos os dados preenchidos e remover os documentos anexados?"
+        )
+
+        if not resposta:
+            return
+
+        for entrada in campos.values():
+            entrada.delete(0, tk.END)
+
+        documentos_selecionados.clear()
+        atualizar_lista_documentos()
+
     frame_botoes_docs = tk.Frame(janela)
     frame_botoes_docs.pack(pady=10)
 
@@ -301,6 +319,14 @@ def abrir_cadastro_funcionario(root):
         command=remover_documento
     )
     botao_remover.grid(row=0, column=1, padx=10)
+
+    botao_limpar = tk.Button(
+        frame_botoes_docs,
+        text="Limpar formulário",
+        width=25,
+        command=limpar_formulario
+    )
+    botao_limpar.grid(row=0, column=2, padx=10)
 
     botao_finalizar = tk.Button(
         janela,
