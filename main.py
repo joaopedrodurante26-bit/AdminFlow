@@ -2,7 +2,10 @@ import tkinter as tk
 from tkinter import messagebox
 
 from app.setores.rh import abrir_cadastro_funcionario
-from app.setores.configuracoes import abrir_configurar_pasta_base
+from app.setores.configuracoes import (
+    abrir_configurar_pasta_base,
+    abrir_verificar_estrutura
+)
 
 
 APP_NAME = "AdminFlow"
@@ -110,7 +113,7 @@ class AdminFlowApp:
             ("Arquivar folha de ponto", self.acao_em_desenvolvimento),
             ("Registrar férias", self.acao_em_desenvolvimento),
             ("Registrar advertência", self.acao_em_desenvolvimento),
-            ("Mover funcionário para desligados", self.acao_em_desenvolvimento),
+            ("Mover funcionário para desligados", self.acao_em_desenvolvimento)
         ]
         self.criar_tela_setor("Recursos Humanos", acoes)
 
@@ -119,7 +122,7 @@ class AdminFlowApp:
             ("Arquivar comprovante", self.acao_em_desenvolvimento),
             ("Registrar conta a pagar", self.acao_em_desenvolvimento),
             ("Registrar conta a receber", self.acao_em_desenvolvimento),
-            ("Arquivar extrato bancário", self.acao_em_desenvolvimento),
+            ("Arquivar extrato bancário", self.acao_em_desenvolvimento)
         ]
         self.criar_tela_setor("Financeiro", acoes)
 
@@ -127,7 +130,7 @@ class AdminFlowApp:
         acoes = [
             ("Arquivar NF emitida", self.acao_em_desenvolvimento),
             ("Arquivar NF recebida", self.acao_em_desenvolvimento),
-            ("Arquivar guia de imposto", self.acao_em_desenvolvimento),
+            ("Arquivar guia de imposto", self.acao_em_desenvolvimento)
         ]
         self.criar_tela_setor("Fiscal / Contábil", acoes)
 
@@ -135,7 +138,7 @@ class AdminFlowApp:
         acoes = [
             ("Arquivar romaneio", self.acao_em_desenvolvimento),
             ("Registrar manutenção de veículo", self.acao_em_desenvolvimento),
-            ("Arquivar comprovante de entrega", self.acao_em_desenvolvimento),
+            ("Arquivar comprovante de entrega", self.acao_em_desenvolvimento)
         ]
         self.criar_tela_setor("Logística", acoes)
 
@@ -144,7 +147,7 @@ class AdminFlowApp:
             ("Arquivar análise da água", self.acao_em_desenvolvimento),
             ("Registrar controle de lote", self.acao_em_desenvolvimento),
             ("Arquivar auditoria", self.acao_em_desenvolvimento),
-            ("Arquivar licença", self.acao_em_desenvolvimento),
+            ("Arquivar licença", self.acao_em_desenvolvimento)
         ]
         self.criar_tela_setor("Qualidade", acoes)
 
@@ -152,21 +155,21 @@ class AdminFlowApp:
         acoes = [
             ("Arquivar contrato de cliente", self.acao_em_desenvolvimento),
             ("Arquivar contrato de fornecedor", self.acao_em_desenvolvimento),
-            ("Arquivar contrato de prestador", self.acao_em_desenvolvimento),
+            ("Arquivar contrato de prestador", self.acao_em_desenvolvimento)
         ]
         self.criar_tela_setor("Contratos", acoes)
 
     def abrir_relatorios(self):
         acoes = [
             ("Gerar relatório de arquivos", self.acao_em_desenvolvimento),
-            ("Gerar relatório de pendências", self.acao_em_desenvolvimento),
+            ("Gerar relatório de pendências", self.acao_em_desenvolvimento)
         ]
         self.criar_tela_setor("Relatórios", acoes)
 
     def abrir_configuracoes(self):
         acoes = [
             ("Configurar pasta base", lambda: abrir_configurar_pasta_base(self.root)),
-            ("Verificar estrutura de pastas", self.acao_em_desenvolvimento),
+            ("Verificar estrutura de pastas", lambda: abrir_verificar_estrutura(self.root))
         ]
         self.criar_tela_setor("Configurações", acoes)
 

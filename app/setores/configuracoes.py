@@ -6,6 +6,7 @@ from app.servicos.configuracoes import (
     salvar_configuracoes,
     obter_pasta_base
 )
+from app.servicos.arquivos import verificar_ou_criar_estrutura
 
 
 def abrir_configurar_pasta_base(root):
@@ -86,3 +87,27 @@ def abrir_configurar_pasta_base(root):
         command=salvar
     )
     botao_salvar.pack(pady=10)
+
+def abrir_verificar_estrutura(root):
+    try:
+        pastas_criadas = verificar_ou_criar_estrutura()
+
+        if pastas_criadas:
+            mensagem = "Estrutura verificada.\n\nPastas criadas:\n\n"
+            mensagem += "\n".join(pastas_criadas[:15])
+
+            if len(pastas_criadas) > 15:
+                mensagem += f"\n\n... e mais {len(pastas_criadas) - 15} pastas."
+        else:
+            mensagem = "Estrutura verificada.\n\nNenhuma pasta precisou ser criada."
+
+        messagebox.showinfo(
+            "Verificação concluída",
+            mensagem
+        )
+
+    except Exception as erro:
+        messagebox.showerror(
+            "Erro",
+            f"Ocorreu um erro ao verificar a estrutura:\n\n{erro}"
+        )
