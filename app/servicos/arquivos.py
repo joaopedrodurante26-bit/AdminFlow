@@ -63,15 +63,15 @@ def criar_pasta_funcionario(dados, documentos):
 
             arquivo.write(f"\nData de criação do cadastro: {data_cadastro}\n")
 
-        pasta_documentos = pasta_temp / "01_Documentos_Pessoais"
-
         for documento in documentos:
-            origem = Path(documento)
+            origem = Path(documento["caminho"])
 
             if not origem.exists():
                 raise FileNotFoundError(f"Documento não encontrado: {origem}")
 
-            destino = pasta_documentos / origem.name
+            pasta_destino = pasta_temp / documento["destino"]
+            destino = pasta_destino / origem.name
+
             shutil.copy2(origem, destino)
 
         pasta_rh.mkdir(parents=True, exist_ok=True)
