@@ -22,6 +22,51 @@ def abrir_cadastro_funcionario(root):
     janela.geometry("750x650")
     janela.minsize(700, 550)
     
+    def aplicar_mascara_cpf(evento):
+        texto = campos["CPF"].get()
+
+        numeros = "".join(c for c in texto if c.isdigit())
+
+        numeros = numeros[:11]
+
+        formatado = ""
+
+        if len(numeros) >= 1:
+            formatado += numeros[:3]
+
+        if len(numeros) >= 4:
+            formatado += "." + numeros[3:6]
+
+        if len(numeros) >= 7:
+            formatado += "." + numeros[6:9]
+
+        if len(numeros) >= 10:
+            formatado += "-" + numeros[9:11]
+
+        campos["CPF"].delete(0, tk.END)
+        campos["CPF"].insert(0, formatado)
+
+    def aplicar_mascara_data(evento):
+        texto = campos["Data de admissão"].get()
+
+        numeros = "".join(c for c in texto if c.isdigit())
+
+        numeros = numeros[:8]
+
+        formatado = ""
+
+        if len(numeros) >= 1:
+            formatado += numeros[:2]
+
+        if len(numeros) >= 3:
+            formatado += "/" + numeros[2:4]
+
+        if len(numeros) >= 5:
+            formatado += "/" + numeros[4:8]
+
+        campos["Data de admissão"].delete(0, tk.END)
+        campos["Data de admissão"].insert(0, formatado)
+
     def existe_progresso():
         for entrada in campos.values():
             if entrada.get().strip():
@@ -120,6 +165,12 @@ def abrir_cadastro_funcionario(root):
     else:
         entrada = tk.Entry(frame_form, width=45)
         entrada.grid(row=i, column=1, padx=10, pady=6)
+
+        if label == "CPF":
+            entrada.bind("<KeyRelease>", aplicar_mascara_cpf)
+
+        if label == "Data de admissão":
+            entrada.bind("<KeyRelease>", aplicar_mascara_data)
 
         campos[label] = entrada
 
