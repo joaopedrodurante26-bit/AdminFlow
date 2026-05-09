@@ -21,54 +21,64 @@ def normalizar_nome(nome):
     for original, novo in substituicoes.items():
         nome = nome.replace(original, novo)
 
-    nome = nome.replace(" ", "_")
-
-    return nome
+    return nome.replace(" ", "_")
 
 
 def criar_pasta_funcionario(dados, documentos):
     nome_funcionario = normalizar_nome(dados["Nome completo"])
     data_cadastro = datetime.now().strftime("%Y-%m-%d")
+    data_hora = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    pasta_funcionario = (
-        PASTA_BASE
-        / "03_RH"
-        / "Funcionarios_Ativos"
-        / f"{data_cadastro}_{nome_funcionario}"
-    )
+    pasta_rh = PASTA_BASE / "03_RH" / "Funcionarios_Ativos"
+    pasta_final = pasta_rh / f"{data_cadastro}_{nome_funcionario}"
 
-    if pasta_funcionario.exists():
-        raise FileExistsError("Pasta do funcionário já existe.")
+    pasta_temp = PASTA_BASE / "99_TEMPORARIO" / f"TEMP_CADASTRO_{data_hora}_{nome_funcionario}"
 
-    subpastas = [
-        "01_Documentos_Pessoais",
-        "02_Contrato",
-        "03_Exames",
-        "04_Ponto",
-        "05_Ferias",
-        "06_Advertencias"
-    ]
+    if pasta_final.exists():
+        raise FileExistsError("Já existe uma pasta para este funcionário.")
 
-    pasta_funcionario.mkdir(parents=True)
+    try:
+        subpastas = [
+            "01_Documentos_Pessoais",
+            "02_Contrato",
+            "03_Exames",
+            "04_Ponto",
+            "05_Ferias",
+            "06_Advertencias"
+        ]
 
-    for subpasta in subpastas:
-        (pasta_funcionario / subpasta).mkdir()
+        pasta_temp.mkdir(parents=True)
 
-    caminho_cadastro = pasta_funcionario / "cadastro_funcionario.txt"
+        for subpasta in subpastas:
+            (pasta_temp / subpasta).mkdir()
 
-    with open(caminho_cadastro, "w", encoding="utf-8") as arquivo:
-        arquivo.write("CADASTRO DE FUNCIONÁRIO\n")
-        arquivo.write("=" * 40 + "\n\n")
+        caminho_cadastro = pasta_temp / "cadastro_funcionario.txt"
 
-        for campo, valor in dados.items():
-            arquivo.write(f"{campo}: {valor}\n")
+        with open(caminho_cadastro, "w", encoding="utf-8") as arquivo:
+            arquivo.write("CADASTRO DE FUNCIONÁRIO\n")
+            arquivo.write("=" * 40 + "\n\n")
 
-        arquivo.write(f"\nData de criação do cadastro: {data_cadastro}\n")
+            for campo, valor in dados.items():
+                arquivo.write(f"{campo}: {valor}\n")
 
-    pasta_documentos = pasta_funcionario / "01_Documentos_Pessoais"
+            arquivo.write(f"\nData de criação do cadastro: {data_cadastro}\n")
 
-    for documento in documentos:
-        origem = Path(documento)
-        destino = pasta_documentos / origem.name
+        pasta_documentos = pasta_temp / "01_Documentos_Pessoais"
 
-        shutil.copy2(origem, destino)
+        for documento in documentos:
+            origem = Path(documento)
+
+            if not origem.exists():
+                raise FileNotFoundError(f"Documento não encontrado: {origem}")
+
+            destino = pasta_documentos / origem.name
+            shutil.copy2(origem, destino)
+
+        pasta_rh.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(pasta_temp), str(pasta_final))
+
+    except Exception:
+        if pasta_temp.exists():
+            shutil.rmtree(pasta_temp)
+
+        raise
