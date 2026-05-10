@@ -3,25 +3,8 @@ from datetime import datetime
 import shutil
 
 from app.servicos.logs import registrar_log
-from AdminFlow.app.servicos.configuracoes.configuracoes import obter_pasta_base
-
-
-def normalizar_nome(nome):
-    nome = nome.strip().upper()
-
-    substituicoes = {
-        "Á": "A", "À": "A", "Â": "A", "Ã": "A",
-        "É": "E", "Ê": "E",
-        "Í": "I",
-        "Ó": "O", "Ô": "O", "Õ": "O",
-        "Ú": "U",
-        "Ç": "C"
-    }
-
-    for original, novo in substituicoes.items():
-        nome = nome.replace(original, novo)
-
-    return nome.replace(" ", "_")
+from app.servicos.configuracoes.configuracoes import obter_pasta_base
+from app.servicos.utils import normalizar_nome
 
 
 def gerar_nome_documento(data_cadastro, nome_funcionario, tipo_documento, caminho_origem, contador):
@@ -30,7 +13,6 @@ def gerar_nome_documento(data_cadastro, nome_funcionario, tipo_documento, caminh
     tipo = normalizar_nome(tipo_documento)
 
     return f"{data_cadastro}_{tipo}_{nome_funcionario}_{contador:02d}{extensao}"
-
 
 def criar_pasta_funcionario(dados, documentos):
     PASTA_BASE = obter_pasta_base()
@@ -104,7 +86,6 @@ def criar_pasta_funcionario(dados, documentos):
         registrar_log(f"ERRO no cadastro de funcionário: {erro}")
         raise
 
-
 def obter_estrutura_padrao():
     return {
         "01_ADMINISTRATIVO": [
@@ -176,7 +157,6 @@ def obter_estrutura_padrao():
         "99_TEMPORARIO": []
     }
 
-
 def verificar_ou_criar_estrutura():
     pasta_base = obter_pasta_base()
     estrutura = obter_estrutura_padrao()
@@ -228,3 +208,114 @@ def estrutura_existe():
             return False
 
     return True
+
+def obter_ano_mes_competencia(competencia):
+    meses = [
+        "01_Janeiro",
+        "02_Fevereiro",
+        "03_Marco",
+        "04_Abril",
+        "05_Maio",
+        "06_Junho",
+        "07_Julho",
+        "08_Agosto",
+        "09_Setembro",
+        "10_Outubro",
+        "11_Novembro",
+        "12_Dezembro"
+    ]
+
+    mes, ano = competencia.split("/")
+
+    return ano, meses[int(mes) - 1]
+
+def gerar_nome_folha_ponto(dados, caminho_origem):
+    competencia = dados["Competência"].replace("/", "-")
+    setor = normalizar_nome(dados["Setor"])
+    tipo = normalizar_nome(dados["Tipo de folha"])
+    extensao = caminho_origem.suffix.lower()
+
+    nome_funcionario = dados.get("Nome do funcionário", "").strip()
+
+    if nome_funcionario:
+        nome_funcionario = normalizar_nome(nome_funcionario)
+    else:
+        nome_funcionario = "GERAL"
+
+    return f"{competencia}_FOLHA_PONTO_{tipo}_{setor}_{nome_funcionario}{extensao}"
+
+def gerar_registro_folha_ponto(dados, nome_arquivo):
+    linhas = []
+
+    linhas.append("REGISTRO DE FOLHA DE PONTO")
+    linhas.append("=" * 40)
+    linhas.append("")
+
+    for campo, valor in dados.items():
+        linhas.append(f"{campo}: {valor}")
+
+    linhas.append("")
+    linhas.append(f"Arquivo arquivado: {nome_arquivo}")
+    linhas.append(f"Data do arquivamento: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+
+    return "\n".join(linhas)
+
+def arquivar_folha_ponto(dados, caminho_arquivo):
+    pasta_base = obter_pasta_base()
+    origem = Path(caminho_arquivo)
+
+    ano, mes = obter_ano_mes_competencia(dados["Competência"])
+
+    pasta_final = (
+        pasta_base
+        / "03_RH"
+        / "Controle_Ponto"
+        / ano
+        / mes
+    )
+
+    pasta_temp = (
+        pasta_base
+        / "99_TEMPORARIO"
+        / f"TEMP_FOLHA_PONTO_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    )
+
+    try:
+        pasta_temp.mkdir(parents=True, exist_ok=False)
+
+        novo_nome = gerar_nome_folha_ponto(dados, origem)
+        destino_temp = pasta_temp / novo_nome
+
+        shutil.copy2(origem, destino_temp)
+
+        registro = gerar_registro_folha_ponto(dados, novo_nome)
+        registro_temp = pasta_temp / f"{destino_temp.stem}_registro.txt"
+
+        with open(registro_temp, "w", encoding="utf-8") as arquivo:
+            arquivo.write(registro)
+
+        pasta_final.mkdir(parents=True, exist_ok=True)
+
+        destino_final = pasta_final / novo_nome
+
+        if destino_final.exists():
+            raise FileExistsError("Já existe uma folha de ponto com esse nome.")
+
+        shutil.move(str(destino_temp), str(destino_final))
+        shutil.move(str(registro_temp), str(pasta_final / registro_temp.name))
+
+        shutil.rmtree(pasta_temp)
+
+        registrar_log(
+            f"Folha de ponto arquivada: {destino_final.name} | Destino: {pasta_final}"
+        )
+
+    except Exception as erro:
+        if pasta_temp.exists():
+            shutil.rmtree(pasta_temp)
+
+        registrar_log(
+            f"ERRO ao arquivar folha de ponto: {erro}"
+        )
+
+        raise

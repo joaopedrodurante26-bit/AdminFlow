@@ -5,7 +5,6 @@ from datetime import datetime
 def apenas_digitos(texto):
     return "".join(caractere for caractere in texto if caractere.isdigit())
 
-
 def validar_cpf(cpf):
     cpf = apenas_digitos(cpf)
 
@@ -36,14 +35,12 @@ def validar_cpf(cpf):
 
     return digito_2 == int(cpf[10])
 
-
 def validar_data(data):
     try:
         datetime.strptime(data, "%d/%m/%Y")
         return True
     except ValueError:
         return False
-
 
 def validar_documentos(documentos):
     if not documentos:
@@ -59,7 +56,6 @@ def validar_documentos(documentos):
             return False, f"O item selecionado não é um arquivo: {caminho.name}"
 
     return True, ""
-
 
 def validar_dados_funcionario(dados, documentos):
     campos_obrigatorios = [
@@ -98,5 +94,61 @@ def validar_dados_funcionario(dados, documentos):
 
     if not documentos_validos:
         return False, mensagem
+
+    return True, ""
+
+def validar_competencia(competencia):
+    partes = competencia.split("/")
+
+    if len(partes) != 2:
+        return False
+
+    mes, ano = partes
+
+    if not (mes.isdigit() and ano.isdigit()):
+        return False
+
+    if len(ano) != 4:
+        return False
+
+    mes = int(mes)
+
+    return 1 <= mes <= 12
+
+def validar_dados_folha_ponto(dados, caminho_arquivo):
+    campos_obrigatorios = [
+        "Competência",
+        "Setor",
+        "Tipo de folha",
+        "Responsável pelo arquivamento"
+    ]
+
+    for campo in campos_obrigatorios:
+        if not dados.get(campo, "").strip():
+            return False, f"O campo '{campo}' é obrigatório."
+
+    if dados["Setor"] == "Selecione":
+        return False, "Selecione o setor."
+
+    if dados["Tipo de folha"] == "Selecione":
+        return False, "Selecione o tipo de folha."
+
+    if not validar_competencia(dados["Competência"]):
+        return False, "Competência inválida. Use MM/AAAA."
+
+    if dados["Tipo de folha"] == "Individual":
+        if not dados.get("Nome do funcionário", "").strip():
+            return False, "Informe o nome do funcionário para folha individual."
+
+    if not caminho_arquivo:
+        return False, "Selecione o arquivo da folha de ponto."
+
+    caminho = Path(caminho_arquivo)
+
+    if not caminho.exists():
+        return False, "O arquivo selecionado não foi encontrado."
+
+    if caminho.is_dir():
+        return False, "O item selecionado não é um arquivo."
 
     return True, ""
