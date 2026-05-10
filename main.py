@@ -29,7 +29,8 @@ from app.setores.rh import (
 
 from app.setores.fiscal import (
     abrir_arquivar_nf_emitida,
-    abrir_arquivar_nf_recebida
+    abrir_arquivar_nf_recebida,
+    abrir_arquivar_guia_imposto
 )
 
 
@@ -156,7 +157,7 @@ class AdminFlowApp:
         acoes = [
             ("Arquivar NF emitida", lambda: abrir_arquivar_nf_emitida(self.root)),
             ("Arquivar NF recebida", lambda: abrir_arquivar_nf_recebida(self.root)),
-            ("Arquivar guia de imposto", self.acao_em_desenvolvimento)
+            ("Arquivar guia de imposto", lambda: abrir_arquivar_guia_imposto(self.root))
         ]
         self.criar_tela_setor("Fiscal / Contábil", acoes)
 
