@@ -33,6 +33,10 @@ from app.setores.fiscal import (
     abrir_arquivar_guia_imposto
 )
 
+from app.setores.qualidade import (
+    abrir_arquivar_analise_agua
+)
+
 
 APP_NAME = "AdminFlow"
 APP_VERSION = "0.1.0"
@@ -171,7 +175,7 @@ class AdminFlowApp:
 
     def abrir_qualidade(self):
         acoes = [
-            ("Arquivar análise da água", self.acao_em_desenvolvimento),
+            ("Arquivar análise da água", lambda: abrir_arquivar_analise_agua(self.root)),
             ("Registrar controle de lote", self.acao_em_desenvolvimento),
             ("Arquivar auditoria", self.acao_em_desenvolvimento),
             ("Arquivar licença", self.acao_em_desenvolvimento)
