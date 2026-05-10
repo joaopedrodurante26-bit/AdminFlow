@@ -16,14 +16,12 @@ def criar_config_padrao():
     with open(CAMINHO_CONFIG, "w", encoding="utf-8") as arquivo:
         json.dump(CONFIG_PADRAO, arquivo, indent=4, ensure_ascii=False)
 
-
 def carregar_configuracoes():
     if not CAMINHO_CONFIG.exists():
         criar_config_padrao()
 
     with open(CAMINHO_CONFIG, "r", encoding="utf-8") as arquivo:
         return json.load(arquivo)
-
 
 def obter_pasta_base():
     config = carregar_configuracoes()
@@ -35,7 +33,6 @@ def obter_pasta_base():
         return Path(pasta_base)
 
     return Path.home() / "Documents" / nome_empresa
-
 
 def salvar_configuracoes(novas_configuracoes):
     with open(CAMINHO_CONFIG, "w", encoding="utf-8") as arquivo:

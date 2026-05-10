@@ -2,8 +2,8 @@ from pathlib import Path
 from datetime import datetime
 import shutil
 
-from AdminFlow.app.servicos.configuracoes.configuracoes import obter_pasta_base
-from AdminFlow.app.servicos.rh.rh_arquivos import normalizar_nome
+from AdminFlow.app.servicos.configuracoes import obter_pasta_base
+from app.servicos.rh.rh_arquivos import normalizar_nome
 from app.servicos.logs import registrar_log
 
 

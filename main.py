@@ -1,23 +1,28 @@
 import tkinter as tk
 from tkinter import messagebox
 
-from app.setores.rh import (
-    abrir_cadastro_funcionario,
-    abrir_arquivar_folha_ponto
-)
+
 from app.setores.configuracoes import (
     abrir_configurar_pasta_base,
     abrir_verificar_estrutura
 )
+
 from app.servicos.rh.rh_arquivos import (
     estrutura_existe,
     verificar_ou_criar_estrutura
 )
+
 from app.setores.financeiro import (
     abrir_arquivar_comprovante,
     abrir_registrar_conta_a_pagar,
     abrir_registrar_conta_a_receber,
     abrir_arquivar_extrato_bancario
+)
+
+from app.setores.rh import (
+    abrir_cadastro_funcionario,
+    abrir_arquivar_folha_ponto,
+    abrir_registrar_ferias
 )
 
 
@@ -125,7 +130,7 @@ class AdminFlowApp:
         acoes = [
             ("Cadastrar funcionário", lambda: abrir_cadastro_funcionario(self.root)),
             ("Arquivar folha de ponto", lambda: abrir_arquivar_folha_ponto(self.root)),
-            ("Registrar férias", self.acao_em_desenvolvimento),
+            ("Registrar férias", lambda: abrir_registrar_ferias(self.root)),
             ("Registrar advertência", self.acao_em_desenvolvimento),
             ("Mover funcionário para desligados", self.acao_em_desenvolvimento)
         ]

@@ -152,3 +152,62 @@ def validar_dados_folha_ponto(dados, caminho_arquivo):
         return False, "O item selecionado não é um arquivo."
 
     return True, ""
+
+def validar_data(data):
+    try:
+        datetime.strptime(data, "%d/%m/%Y")
+        return True
+    except ValueError:
+        return False
+
+def converter_data(data):
+    return datetime.strptime(data, "%d/%m/%Y")
+
+def validar_dados_ferias(dados, caminho_documento):
+    campos_obrigatorios = [
+        "Nome do funcionário",
+        "Setor",
+        "Período aquisitivo início",
+        "Período aquisitivo fim",
+        "Início das férias",
+        "Fim das férias",
+        "Responsável pelo registro",
+        "Status"
+    ]
+
+    for campo in campos_obrigatorios:
+        if not dados.get(campo, "").strip():
+            return False, f"O campo '{campo}' é obrigatório."
+
+    datas = [
+        "Período aquisitivo início",
+        "Período aquisitivo fim",
+        "Início das férias",
+        "Fim das férias"
+    ]
+
+    for campo in datas:
+        if not validar_data(dados[campo]):
+            return False, f"Data inválida no campo '{campo}'. Use DD/MM/AAAA."
+
+    aquisitivo_inicio = converter_data(dados["Período aquisitivo início"])
+    aquisitivo_fim = converter_data(dados["Período aquisitivo fim"])
+    ferias_inicio = converter_data(dados["Início das férias"])
+    ferias_fim = converter_data(dados["Fim das férias"])
+
+    if aquisitivo_fim < aquisitivo_inicio:
+        return False, "O fim do período aquisitivo não pode ser anterior ao início."
+
+    if ferias_fim < ferias_inicio:
+        return False, "O fim das férias não pode ser anterior ao início das férias."
+
+    if caminho_documento:
+        caminho = Path(caminho_documento)
+
+        if not caminho.exists():
+            return False, "O documento anexado não foi encontrado."
+
+        if caminho.is_dir():
+            return False, "O item anexado não é um arquivo."
+
+    return True, ""

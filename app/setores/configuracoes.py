@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
-from AdminFlow.app.servicos.configuracoes.configuracoes import (
+from AdminFlow.app.servicos.configuracoes import (
     carregar_configuracoes,
     salvar_configuracoes,
     obter_pasta_base
 )
-from AdminFlow.app.servicos.rh.rh_arquivos import verificar_ou_criar_estrutura
+
+from app.servicos.rh.rh_arquivos import verificar_ou_criar_estrutura
 
 
 def abrir_configurar_pasta_base(root):

@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
 
-from AdminFlow.app.servicos.financeiro.financeiro_arquivos import arquivar_comprovante
-from AdminFlow.app.servicos.financeiro.financeiro_validacao import validar_dados_comprovante
 from app.servicos.financeiro.financeiro_arquivos import (
     arquivar_comprovante,
     registrar_conta_a_pagar,

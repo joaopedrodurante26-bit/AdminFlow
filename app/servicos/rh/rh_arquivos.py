@@ -3,7 +3,7 @@ from datetime import datetime
 import shutil
 
 from app.servicos.logs import registrar_log
-from app.servicos.configuracoes.configuracoes import obter_pasta_base
+from app.servicos.configuracoes import obter_pasta_base
 from app.servicos.utils import normalizar_nome
 
 
@@ -85,77 +85,6 @@ def criar_pasta_funcionario(dados, documentos):
             shutil.rmtree(pasta_temp)
         registrar_log(f"ERRO no cadastro de funcionário: {erro}")
         raise
-
-def obter_estrutura_padrao():
-    return {
-        "01_ADMINISTRATIVO": [
-            "Comunicados",
-            "Memorandos",
-            "Planejamentos"
-        ],
-        "02_FINANCEIRO": [
-            "Contas_a_Pagar",
-            "Contas_a_Receber",
-            "Extratos",
-            "Comprovantes",
-            "Fluxo_de_Caixa"
-        ],
-        "03_RH": [
-            "Funcionarios_Ativos",
-            "Funcionarios_Desligados",
-            "Folha_Pagamento",
-            "Controle_Ponto",
-            "Treinamentos"
-        ],
-        "04_FISCAL_CONTABIL": [
-            "NF_Emitidas",
-            "NF_Recebidas",
-            "Impostos",
-            "SPED",
-            "Declaracoes"
-        ],
-        "05_COMERCIAL": [
-            "Clientes",
-            "Propostas",
-            "Pedidos",
-            "Relatorios_Vendas"
-        ],
-        "06_LOGISTICA": [
-            "Entregas",
-            "Romaneios",
-            "Frota",
-            "Rotas"
-        ],
-        "07_QUALIDADE": [
-            "Analises_Agua",
-            "Controle_Lotes",
-            "Auditorias",
-            "Inspecoes",
-            "Licencas"
-        ],
-        "08_CONTRATOS": [
-            "Clientes",
-            "Fornecedores",
-            "Prestadores"
-        ],
-        "09_RELATORIOS": [
-            "Administrativos",
-            "Financeiros",
-            "Operacionais"
-        ],
-        "10_MODELOS": [
-            "RH",
-            "Financeiro",
-            "Fiscal",
-            "Qualidade"
-        ],
-        "11_DIGITALIZADOS": [
-            "Pendentes",
-            "Arquivados"
-        ],
-        "12_BACKUP_LOCAL": [],
-        "99_TEMPORARIO": []
-    }
 
 def verificar_ou_criar_estrutura():
     pasta_base = obter_pasta_base()
@@ -316,6 +245,122 @@ def arquivar_folha_ponto(dados, caminho_arquivo):
 
         registrar_log(
             f"ERRO ao arquivar folha de ponto: {erro}"
+        )
+
+        raise
+
+def converter_data_para_iso(data):
+    return datetime.strptime(data, "%d/%m/%Y").strftime("%Y-%m-%d")
+
+def gerar_nome_registro_ferias(dados):
+    inicio_iso = converter_data_para_iso(dados["Início das férias"])
+    fim_iso = converter_data_para_iso(dados["Fim das férias"])
+
+    funcionario = normalizar_nome(dados["Nome do funcionário"])
+    status = normalizar_nome(dados["Status"])
+
+    return f"{inicio_iso}_A_{fim_iso}_FERIAS_{funcionario}_{status}.txt"
+
+def gerar_nome_anexo_ferias(dados, caminho_origem):
+    inicio_iso = converter_data_para_iso(dados["Início das férias"])
+    fim_iso = converter_data_para_iso(dados["Fim das férias"])
+
+    funcionario = normalizar_nome(dados["Nome do funcionário"])
+    extensao = caminho_origem.suffix.lower()
+
+    return f"{inicio_iso}_A_{fim_iso}_ANEXO_FERIAS_{funcionario}{extensao}"
+
+def gerar_registro_ferias(dados, nome_anexo=None):
+    linhas = []
+
+    linhas.append("REGISTRO DE FÉRIAS")
+    linhas.append("=" * 40)
+    linhas.append("")
+
+    for campo, valor in dados.items():
+        linhas.append(f"{campo}: {valor}")
+
+    linhas.append("")
+    linhas.append(f"Data do registro: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+
+    if nome_anexo:
+        linhas.append(f"Documento anexado: {nome_anexo}")
+    else:
+        linhas.append("Documento anexado: Nenhum")
+
+    return "\n".join(linhas)
+
+def registrar_ferias(dados, caminho_documento=""):
+    pasta_base = obter_pasta_base()
+
+    funcionario = normalizar_nome(dados["Nome do funcionário"])
+    ano_inicio = datetime.strptime(dados["Início das férias"], "%d/%m/%Y").strftime("%Y")
+
+    pasta_final = (
+        pasta_base
+        / "03_RH"
+        / "Ferias"
+        / ano_inicio
+        / funcionario
+    )
+
+    pasta_temp = (
+        pasta_base
+        / "99_TEMPORARIO"
+        / f"TEMP_FERIAS_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    )
+
+    try:
+        pasta_temp.mkdir(parents=True, exist_ok=False)
+
+        nome_anexo = None
+
+        if caminho_documento:
+            origem = Path(caminho_documento)
+
+            if not origem.exists():
+                raise FileNotFoundError("Documento anexado não encontrado.")
+
+            nome_anexo = gerar_nome_anexo_ferias(dados, origem)
+            destino_anexo_temp = pasta_temp / nome_anexo
+
+            shutil.copy2(origem, destino_anexo_temp)
+
+        nome_registro = gerar_nome_registro_ferias(dados)
+        registro_temp = pasta_temp / nome_registro
+
+        registro = gerar_registro_ferias(dados, nome_anexo)
+
+        with open(registro_temp, "w", encoding="utf-8") as arquivo:
+            arquivo.write(registro)
+
+        pasta_final.mkdir(parents=True, exist_ok=True)
+
+        destino_registro_final = pasta_final / nome_registro
+
+        if destino_registro_final.exists():
+            raise FileExistsError("Já existe registro de férias com esse nome.")
+
+        shutil.move(str(registro_temp), str(destino_registro_final))
+
+        if nome_anexo:
+            shutil.move(
+                str(pasta_temp / nome_anexo),
+                str(pasta_final / nome_anexo)
+            )
+
+        shutil.rmtree(pasta_temp)
+
+        registrar_log(
+            f"Férias registradas: {nome_registro} | Destino: {pasta_final}"
+        )
+
+    except Exception as erro:
+        if pasta_temp.exists():
+            shutil.rmtree(pasta_temp)
+
+        registrar_log(
+            f"ERRO ao registrar férias: {erro}"
         )
 
         raise
