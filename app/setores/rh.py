@@ -7,14 +7,16 @@ from app.servicos.rh.rh_arquivos import (
     criar_pasta_funcionario,
     arquivar_folha_ponto,
     registrar_ferias,
-    registrar_advertencia
+    registrar_advertencia,
+    mover_funcionario_para_desligados
 )
 
 from app.servicos.rh.rh_validacao import (
     validar_dados_funcionario,
     validar_dados_folha_ponto,
     validar_dados_ferias,
-    validar_dados_advertencia
+    validar_dados_advertencia,
+    validar_dados_desligamento
 )
 
 
@@ -1365,3 +1367,300 @@ def abrir_registrar_advertencia(root):
         height=2,
         command=finalizar
     ).pack(pady=15)
+
+def abrir_mover_funcionario_desligados(root):
+    janela = tk.Toplevel(root)
+    janela.title("Mover Funcionário para Desligados")
+    janela.geometry("780x620")
+    janela.minsize(720, 560)
+
+    campos = {}
+    pasta_funcionario = {"caminho": ""}
+
+    MOTIVOS = [
+        "Pedido de demissão",
+        "Demissão sem justa causa",
+        "Demissão por justa causa",
+        "Término de contrato",
+        "Acordo entre as partes",
+        "Aposentadoria",
+        "Outros"
+    ]
+
+    def existe_progresso():
+        for campo in campos.values():
+            if campo.get().strip():
+                return True
+
+        return bool(pasta_funcionario["caminho"])
+
+    def ao_fechar_janela():
+        if not existe_progresso():
+            janela.destroy()
+            return
+
+        resposta = messagebox.askyesno(
+            "Cancelar desligamento",
+            "Há informações preenchidas ou funcionário selecionado.\n\n"
+            "Deseja realmente cancelar?"
+        )
+
+        if resposta:
+            janela.destroy()
+
+    janela.protocol("WM_DELETE_WINDOW", ao_fechar_janela)
+
+    tk.Label(
+        janela,
+        text="Mover Funcionário para Desligados",
+        font=("Arial", 18, "bold")
+    ).pack(pady=15)
+
+    frame_form = tk.Frame(janela)
+    frame_form.pack(pady=10)
+
+    campos_texto = [
+        "Nome do funcionário",
+        "Data de desligamento",
+        "Responsável pelo registro",
+        "Observações"
+    ]
+
+    for i, label in enumerate(campos_texto):
+        tk.Label(frame_form, text=label + ":").grid(
+            row=i,
+            column=0,
+            sticky="e",
+            padx=10,
+            pady=6
+        )
+
+        entrada = tk.Entry(frame_form, width=50)
+        entrada.grid(row=i, column=1, padx=10, pady=6)
+        campos[label] = entrada
+
+    linha = len(campos_texto)
+
+    tk.Label(frame_form, text="Motivo do desligamento:").grid(
+        row=linha,
+        column=0,
+        sticky="e",
+        padx=10,
+        pady=6
+    )
+
+    motivo = tk.StringVar(value="Selecione")
+    tk.OptionMenu(frame_form, motivo, *MOTIVOS).grid(
+        row=linha,
+        column=1,
+        sticky="w",
+        padx=10,
+        pady=6
+    )
+    campos["Motivo do desligamento"] = motivo
+
+    def aplicar_mascara_data(evento):
+        texto = campos["Data de desligamento"].get()
+        numeros = "".join(c for c in texto if c.isdigit())[:8]
+
+        formatado = ""
+
+        if len(numeros) >= 1:
+            formatado += numeros[:2]
+
+        if len(numeros) >= 3:
+            formatado += "/" + numeros[2:4]
+
+        if len(numeros) >= 5:
+            formatado += "/" + numeros[4:8]
+
+        campos["Data de desligamento"].delete(0, tk.END)
+        campos["Data de desligamento"].insert(0, formatado)
+
+    campos["Data de desligamento"].bind("<KeyRelease>", aplicar_mascara_data)
+
+    frame_pasta = tk.Frame(janela)
+    frame_pasta.pack(pady=15)
+
+    label_pasta = tk.Label(
+        frame_pasta,
+        text="Nenhuma pasta de funcionário selecionada.",
+        width=85,
+        anchor="w"
+    )
+    label_pasta.pack(pady=5)
+
+    def selecionar_pasta_funcionario():
+        pasta = filedialog.askdirectory(
+            title="Selecione a pasta do funcionário em Funcionarios_Ativos"
+        )
+
+        if pasta:
+            pasta_funcionario["caminho"] = pasta
+            label_pasta.config(text=f"Selecionada: {Path(pasta).name}")
+
+            if not campos["Nome do funcionário"].get().strip():
+                nome_sugerido = Path(pasta).name
+
+                if "_" in nome_sugerido:
+                    partes = nome_sugerido.split("_", 3)
+                    if len(partes) >= 4:
+                        nome_sugerido = partes[3]
+
+                campos["Nome do funcionário"].insert(
+                    0,
+                    nome_sugerido.replace("_", " ").title()
+                )
+
+    def remover_pasta():
+        pasta_funcionario["caminho"] = ""
+        label_pasta.config(text="Nenhuma pasta de funcionário selecionada.")
+
+    def coletar_dados():
+        dados = {}
+
+        for nome_campo, campo in campos.items():
+            dados[nome_campo] = campo.get().strip()
+
+        return dados
+
+    def exibir_resumo_confirmacao(dados):
+        janela_resumo = tk.Toplevel(janela)
+        janela_resumo.title("Confirmar Desligamento")
+        janela_resumo.geometry("700x500")
+        janela_resumo.minsize(640, 450)
+
+        tk.Label(
+            janela_resumo,
+            text="Resumo do Desligamento",
+            font=("Arial", 16, "bold")
+        ).pack(pady=15)
+
+        caixa_texto = tk.Text(
+            janela_resumo,
+            width=82,
+            height=18,
+            wrap="word"
+        )
+        caixa_texto.pack(padx=15, pady=10)
+
+        caixa_texto.insert(tk.END, "DADOS DO DESLIGAMENTO\n")
+        caixa_texto.insert(tk.END, "=" * 45 + "\n\n")
+
+        for campo, valor in dados.items():
+            caixa_texto.insert(tk.END, f"{campo}: {valor}\n")
+
+        caixa_texto.insert(tk.END, "\nPASTA SELECIONADA\n")
+        caixa_texto.insert(tk.END, "=" * 45 + "\n\n")
+        caixa_texto.insert(tk.END, pasta_funcionario["caminho"])
+
+        caixa_texto.config(state="disabled")
+
+        def confirmar():
+            janela_resumo.destroy()
+            executar_desligamento(dados)
+
+        frame_botoes = tk.Frame(janela_resumo)
+        frame_botoes.pack(pady=10)
+
+        tk.Button(
+            frame_botoes,
+            text="Confirmar e mover",
+            width=25,
+            height=2,
+            command=confirmar
+        ).grid(row=0, column=0, padx=10)
+
+        tk.Button(
+            frame_botoes,
+            text="Voltar e corrigir",
+            width=25,
+            height=2,
+            command=janela_resumo.destroy
+        ).grid(row=0, column=1, padx=10)
+
+    def executar_desligamento(dados):
+        try:
+            mover_funcionario_para_desligados(
+                dados,
+                pasta_funcionario["caminho"]
+            )
+
+            messagebox.showinfo(
+                "Desligamento concluído",
+                "Funcionário movido para desligados com sucesso."
+            )
+
+            janela.destroy()
+
+        except Exception as erro:
+            messagebox.showerror(
+                "Erro inesperado",
+                f"Ocorreu um erro ao mover o funcionário:\n\n{erro}"
+            )
+
+    def finalizar():
+        dados = coletar_dados()
+
+        valido, mensagem = validar_dados_desligamento(
+            dados,
+            pasta_funcionario["caminho"]
+        )
+
+        if not valido:
+            messagebox.showerror("Erro de validação", mensagem)
+            return
+
+        exibir_resumo_confirmacao(dados)
+
+    def limpar_formulario():
+        if not existe_progresso():
+            return
+
+        resposta = messagebox.askyesno(
+            "Limpar formulário",
+            "Deseja apagar os dados preenchidos e remover a pasta selecionada?"
+        )
+
+        if not resposta:
+            return
+
+        for campo in campos.values():
+            if hasattr(campo, "delete"):
+                campo.delete(0, tk.END)
+            else:
+                campo.set("Selecione")
+
+        remover_pasta()
+
+    frame_botoes = tk.Frame(janela)
+    frame_botoes.pack(pady=15)
+
+    tk.Button(
+        frame_botoes,
+        text="Selecionar funcionário",
+        width=24,
+        command=selecionar_pasta_funcionario
+    ).grid(row=0, column=0, padx=8)
+
+    tk.Button(
+        frame_botoes,
+        text="Remover seleção",
+        width=24,
+        command=remover_pasta
+    ).grid(row=0, column=1, padx=8)
+
+    tk.Button(
+        frame_botoes,
+        text="Limpar formulário",
+        width=24,
+        command=limpar_formulario
+    ).grid(row=0, column=2, padx=8)
+
+    tk.Button(
+        janela,
+        text="Finalizar desligamento",
+        width=28,
+        height=2,
+        command=finalizar
+    ).pack(pady=20)

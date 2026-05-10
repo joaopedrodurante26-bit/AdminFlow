@@ -252,3 +252,37 @@ def validar_dados_advertencia(dados, caminho_documento):
             return False, "O item anexado não é um arquivo."
 
     return True, ""
+
+def validar_dados_desligamento(dados, caminho_pasta_funcionario):
+    campos_obrigatorios = [
+        "Nome do funcionário",
+        "Data de desligamento",
+        "Responsável pelo registro",
+        "Motivo do desligamento"
+    ]
+
+    for campo in campos_obrigatorios:
+        if not dados.get(campo, "").strip():
+            return False, f"O campo '{campo}' é obrigatório."
+
+    if dados["Motivo do desligamento"] == "Selecione":
+        return False, "Selecione o motivo do desligamento."
+
+    if not validar_data(dados["Data de desligamento"]):
+        return False, "Data de desligamento inválida. Use DD/MM/AAAA."
+
+    if not caminho_pasta_funcionario:
+        return False, "Selecione a pasta do funcionário ativo."
+
+    caminho = Path(caminho_pasta_funcionario)
+
+    if not caminho.exists():
+        return False, "A pasta do funcionário selecionado não foi encontrada."
+
+    if not caminho.is_dir():
+        return False, "O caminho selecionado não é uma pasta."
+
+    if caminho.name.strip() == "":
+        return False, "Pasta inválida."
+
+    return True, ""

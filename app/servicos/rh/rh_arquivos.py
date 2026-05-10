@@ -474,3 +474,96 @@ def registrar_advertencia(dados, caminho_documento=""):
         )
 
         raise
+
+def gerar_nome_registro_desligamento(dados):
+    data_iso = converter_data_para_iso(dados["Data de desligamento"])
+    funcionario = normalizar_nome(dados["Nome do funcionário"])
+    motivo = normalizar_nome(dados["Motivo do desligamento"])
+
+    return f"{data_iso}_DESLIGAMENTO_{funcionario}_{motivo}.txt"
+
+def gerar_registro_desligamento(dados, pasta_origem, pasta_destino):
+    linhas = []
+
+    linhas.append("REGISTRO DE DESLIGAMENTO")
+    linhas.append("=" * 40)
+    linhas.append("")
+
+    for campo, valor in dados.items():
+        linhas.append(f"{campo}: {valor}")
+
+    linhas.append("")
+    linhas.append(f"Pasta original: {pasta_origem}")
+    linhas.append(f"Pasta de destino: {pasta_destino}")
+    linhas.append(f"Data do registro: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+
+    return "\n".join(linhas)
+
+def mover_funcionario_para_desligados(dados, caminho_pasta_funcionario):
+    pasta_base = obter_pasta_base()
+
+    pasta_origem = Path(caminho_pasta_funcionario)
+
+    if not pasta_origem.exists():
+        raise FileNotFoundError("Pasta do funcionário não encontrada.")
+
+    if not pasta_origem.is_dir():
+        raise NotADirectoryError("O caminho selecionado não é uma pasta.")
+
+    funcionario = normalizar_nome(dados["Nome do funcionário"])
+    data_iso = converter_data_para_iso(dados["Data de desligamento"])
+    ano = datetime.strptime(dados["Data de desligamento"], "%d/%m/%Y").strftime("%Y")
+
+    pasta_desligados_ano = (
+        pasta_base
+        / "03_RH"
+        / "Funcionarios_Desligados"
+        / ano
+    )
+
+    nome_destino = f"{data_iso}_{funcionario}"
+    pasta_destino = pasta_desligados_ano / nome_destino
+
+    pasta_temp = (
+        pasta_base
+        / "99_TEMPORARIO"
+        / f"TEMP_DESLIGAMENTO_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{funcionario}"
+    )
+
+    try:
+        pasta_desligados_ano.mkdir(parents=True, exist_ok=True)
+
+        if pasta_destino.exists():
+            raise FileExistsError("Já existe uma pasta de desligamento para este funcionário.")
+
+        shutil.copytree(pasta_origem, pasta_temp)
+
+        nome_registro = gerar_nome_registro_desligamento(dados)
+        registro_temp = pasta_temp / nome_registro
+
+        registro = gerar_registro_desligamento(
+            dados,
+            pasta_origem,
+            pasta_destino
+        )
+
+        with open(registro_temp, "w", encoding="utf-8") as arquivo:
+            arquivo.write(registro)
+
+        shutil.move(str(pasta_temp), str(pasta_destino))
+
+        shutil.rmtree(pasta_origem)
+
+        registrar_log(
+            f"Funcionário movido para desligados: {funcionario} | Destino: {pasta_destino}"
+        )
+
+    except Exception as erro:
+        if pasta_temp.exists():
+            shutil.rmtree(pasta_temp)
+
+        registrar_log(
+            f"ERRO ao mover funcionário para desligados: {erro}"
+        )
+
+        raise
