@@ -27,7 +27,10 @@ from app.setores.rh import (
     abrir_mover_funcionario_desligados
 )
 
-from app.setores.fiscal import abrir_arquivar_nf_emitida
+from app.setores.fiscal import (
+    abrir_arquivar_nf_emitida,
+    abrir_arquivar_nf_recebida
+)
 
 
 APP_NAME = "AdminFlow"
@@ -152,7 +155,7 @@ class AdminFlowApp:
     def abrir_fiscal(self):
         acoes = [
             ("Arquivar NF emitida", lambda: abrir_arquivar_nf_emitida(self.root)),
-            ("Arquivar NF recebida", self.acao_em_desenvolvimento),
+            ("Arquivar NF recebida", lambda: abrir_arquivar_nf_recebida(self.root)),
             ("Arquivar guia de imposto", self.acao_em_desenvolvimento)
         ]
         self.criar_tela_setor("Fiscal / Contábil", acoes)
