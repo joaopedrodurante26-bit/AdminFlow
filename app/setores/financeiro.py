@@ -4,8 +4,19 @@ from pathlib import Path
 
 from AdminFlow.app.servicos.financeiro.financeiro_arquivos import arquivar_comprovante
 from AdminFlow.app.servicos.financeiro.financeiro_validacao import validar_dados_comprovante
-from app.servicos.financeiro.financeiro_arquivos import arquivar_comprovante, registrar_conta_a_pagar, registrar_conta_a_receber
-from app.servicos.financeiro.financeiro_validacao import validar_dados_comprovante, validar_dados_conta_a_pagar, validar_dados_conta_a_receber
+from app.servicos.financeiro.financeiro_arquivos import (
+    arquivar_comprovante,
+    registrar_conta_a_pagar,
+    registrar_conta_a_receber,
+    arquivar_extrato_bancario
+)
+
+from app.servicos.financeiro.financeiro_validacao import (
+    validar_dados_comprovante,
+    validar_dados_conta_a_pagar,
+    validar_dados_conta_a_receber,
+    validar_dados_extrato_bancario
+)
 
 
 TIPOS_COMPROVANTE = [
@@ -1050,3 +1061,209 @@ def abrir_registrar_conta_a_receber(root):
         height=2,
         command=finalizar
     ).pack(pady=20)
+
+def abrir_arquivar_extrato_bancario(root):
+    janela = tk.Toplevel(root)
+    janela.title("Arquivar Extrato Bancário")
+    janela.geometry("760x580")
+    janela.minsize(700, 520)
+
+    campos = {}
+    arquivo_extrato = {"caminho": ""}
+
+    BANCOS = [
+        "Banco do Brasil",
+        "Caixa Econômica",
+        "Bradesco",
+        "Itaú",
+        "Santander",
+        "Sicoob",
+        "Nubank",
+        "Inter",
+        "C6 Bank",
+        "Outro"
+    ]
+
+    TIPOS_CONTA = [
+        "Conta corrente",
+        "Conta poupança",
+        "Conta PJ",
+        "Conta investimento"
+    ]
+
+    def existe_progresso():
+        for campo in campos.values():
+            if campo.get().strip():
+                return True
+
+        if arquivo_extrato["caminho"]:
+            return True
+
+        return False
+
+    def ao_fechar_janela():
+        if not existe_progresso():
+            janela.destroy()
+            return
+
+        resposta = messagebox.askyesno(
+            "Cancelar arquivamento",
+            "Há informações preenchidas ou arquivo anexado.\n\n"
+            "Deseja realmente cancelar?"
+        )
+
+        if resposta:
+            janela.destroy()
+
+    janela.protocol("WM_DELETE_WINDOW", ao_fechar_janela)
+
+    titulo = tk.Label(
+        janela,
+        text="Arquivar Extrato Bancário",
+        font=("Arial", 18, "bold")
+    )
+    titulo.pack(pady=15)
+
+    frame_form = tk.Frame(janela)
+    frame_form.pack(pady=10)
+
+    campos_texto = [
+        "Competência",
+        "Agência",
+        "Conta",
+        "Observações"
+    ]
+
+    for i, label in enumerate(campos_texto):
+        tk.Label(frame_form, text=label + ":").grid(
+            row=i,
+            column=0,
+            sticky="e",
+            padx=10,
+            pady=6
+        )
+
+        entrada = tk.Entry(frame_form, width=45)
+        entrada.grid(row=i, column=1, padx=10, pady=6)
+
+        campos[label] = entrada
+
+    linha = len(campos_texto)
+
+    tk.Label(frame_form, text="Banco:").grid(
+        row=linha,
+        column=0,
+        sticky="e",
+        padx=10,
+        pady=6
+    )
+
+    banco = tk.StringVar(value="Selecione")
+    tk.OptionMenu(frame_form, banco, *BANCOS).grid(
+        row=linha,
+        column=1,
+        sticky="w",
+        padx=10,
+        pady=6
+    )
+    campos["Banco"] = banco
+
+    linha += 1
+
+    tk.Label(frame_form, text="Tipo de conta:").grid(
+        row=linha,
+        column=0,
+        sticky="e",
+        padx=10,
+        pady=6
+    )
+
+    tipo_conta = tk.StringVar(value="Selecione")
+    tk.OptionMenu(frame_form, tipo_conta, *TIPOS_CONTA).grid(
+        row=linha,
+        column=1,
+        sticky="w",
+        padx=10,
+        pady=6
+    )
+    campos["Tipo de conta"] = tipo_conta
+
+    frame_arquivo = tk.Frame(janela)
+    frame_arquivo.pack(pady=15)
+
+    label_arquivo = tk.Label(
+        frame_arquivo,
+        text="Nenhum extrato selecionado.",
+        width=85,
+        anchor="w"
+    )
+    label_arquivo.pack(pady=5)
+
+    def selecionar_extrato():
+        arquivo = filedialog.askopenfilename(
+            title="Selecione o extrato bancário",
+            filetypes=[
+                ("Arquivos PDF", "*.pdf"),
+                ("Todos os arquivos", "*.*")
+            ]
+        )
+
+        if arquivo:
+            arquivo_extrato["caminho"] = arquivo
+            label_arquivo.config(text=f"Selecionado: {Path(arquivo).name}")
+
+    def coletar_dados():
+        dados = {}
+
+        for nome_campo, campo in campos.items():
+            dados[nome_campo] = campo.get().strip()
+
+        return dados
+
+    def finalizar():
+        dados = coletar_dados()
+
+        valido, mensagem = validar_dados_extrato_bancario(
+            dados,
+            arquivo_extrato["caminho"]
+        )
+
+        if not valido:
+            messagebox.showerror("Erro de validação", mensagem)
+            return
+
+        try:
+            arquivar_extrato_bancario(
+                dados,
+                arquivo_extrato["caminho"]
+            )
+
+            messagebox.showinfo(
+                "Extrato arquivado",
+                "Extrato bancário arquivado com sucesso."
+            )
+
+            janela.destroy()
+
+        except Exception as erro:
+            messagebox.showerror(
+                "Erro inesperado",
+                f"Ocorreu um erro:\n\n{erro}"
+            )
+
+    frame_botoes = tk.Frame(janela)
+    frame_botoes.pack(pady=15)
+
+    tk.Button(
+        frame_botoes,
+        text="Selecionar extrato",
+        width=25,
+        command=selecionar_extrato
+    ).grid(row=0, column=0, padx=10)
+
+    tk.Button(
+        frame_botoes,
+        text="Finalizar arquivamento",
+        width=25,
+        command=finalizar
+    ).grid(row=0, column=1, padx=10)

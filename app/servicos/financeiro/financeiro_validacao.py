@@ -140,3 +140,53 @@ def validar_dados_conta_a_receber(dados, caminho_documento):
             return False, "O item anexado não é um arquivo."
 
     return True, ""
+
+def validar_competencia(competencia):
+    partes = competencia.split("/")
+
+    if len(partes) != 2:
+        return False
+
+    mes, ano = partes
+
+    if not (mes.isdigit() and ano.isdigit()):
+        return False
+
+    mes = int(mes)
+
+    return 1 <= mes <= 12 and len(ano) == 4
+
+def validar_dados_extrato_bancario(dados, caminho_extrato):
+    campos_obrigatorios = [
+        "Competência",
+        "Banco",
+        "Tipo de conta",
+        "Agência",
+        "Conta"
+    ]
+
+    for campo in campos_obrigatorios:
+        if not dados.get(campo, "").strip():
+            return False, f"O campo '{campo}' é obrigatório."
+
+    if dados["Banco"] == "Selecione":
+        return False, "Selecione o banco."
+
+    if dados["Tipo de conta"] == "Selecione":
+        return False, "Selecione o tipo de conta."
+
+    if not validar_competencia(dados["Competência"]):
+        return False, "Competência inválida. Use MM/AAAA."
+
+    if not caminho_extrato:
+        return False, "Selecione um arquivo de extrato."
+
+    caminho = Path(caminho_extrato)
+
+    if not caminho.exists():
+        return False, "O extrato selecionado não foi encontrado."
+
+    if caminho.is_dir():
+        return False, "O item selecionado não é um arquivo."
+
+    return True, ""

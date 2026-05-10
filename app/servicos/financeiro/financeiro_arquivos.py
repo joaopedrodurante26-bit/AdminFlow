@@ -353,3 +353,124 @@ def registrar_conta_a_receber(dados, caminho_documento=""):
         )
 
         raise
+
+def obter_ano_mes_competencia(competencia):
+    meses = [
+        "01_Janeiro",
+        "02_Fevereiro",
+        "03_Marco",
+        "04_Abril",
+        "05_Maio",
+        "06_Junho",
+        "07_Julho",
+        "08_Agosto",
+        "09_Setembro",
+        "10_Outubro",
+        "11_Novembro",
+        "12_Dezembro"
+    ]
+
+    mes, ano = competencia.split("/")
+
+    return ano, meses[int(mes) - 1]
+
+def gerar_nome_extrato(dados, caminho_origem):
+    competencia = dados["Competência"].replace("/", "-")
+    banco = normalizar_nome(dados["Banco"])
+    tipo_conta = normalizar_nome(dados["Tipo de conta"])
+
+    extensao = caminho_origem.suffix.lower()
+
+    return f"{competencia}_EXTRATO_{banco}_{tipo_conta}{extensao}"
+
+def gerar_registro_extrato(dados, nome_arquivo):
+    linhas = []
+
+    linhas.append("REGISTRO DE EXTRATO BANCÁRIO")
+    linhas.append("=" * 40)
+    linhas.append("")
+
+    for campo, valor in dados.items():
+        linhas.append(f"{campo}: {valor}")
+
+    linhas.append("")
+    linhas.append(f"Arquivo arquivado: {nome_arquivo}")
+    linhas.append(
+        f"Data do arquivamento: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
+    )
+
+    return "\n".join(linhas)
+
+def arquivar_extrato_bancario(dados, caminho_extrato):
+    pasta_base = obter_pasta_base()
+
+    origem = Path(caminho_extrato)
+
+    ano, mes = obter_ano_mes_competencia(
+        dados["Competência"]
+    )
+
+    banco = normalizar_nome(dados["Banco"])
+
+    pasta_final = (
+        pasta_base
+        / "02_FINANCEIRO"
+        / "Extratos"
+        / banco
+        / ano
+        / mes
+    )
+
+    pasta_temp = (
+        pasta_base
+        / "99_TEMPORARIO"
+        / f"TEMP_EXTRATO_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    )
+
+    try:
+        pasta_temp.mkdir(parents=True, exist_ok=False)
+
+        novo_nome = gerar_nome_extrato(dados, origem)
+
+        destino_temp = pasta_temp / novo_nome
+
+        shutil.copy2(origem, destino_temp)
+
+        registro = gerar_registro_extrato(dados, novo_nome)
+
+        registro_temp = pasta_temp / f"{destino_temp.stem}_registro.txt"
+
+        with open(registro_temp, "w", encoding="utf-8") as arquivo:
+            arquivo.write(registro)
+
+        pasta_final.mkdir(parents=True, exist_ok=True)
+
+        destino_final = pasta_final / novo_nome
+
+        if destino_final.exists():
+            raise FileExistsError(
+                "Já existe um extrato com esse nome."
+            )
+
+        shutil.move(str(destino_temp), str(destino_final))
+
+        shutil.move(
+            str(registro_temp),
+            str(pasta_final / registro_temp.name)
+        )
+
+        shutil.rmtree(pasta_temp)
+
+        registrar_log(
+            f"Extrato bancário arquivado: {destino_final.name} | Destino: {pasta_final}"
+        )
+
+    except Exception as erro:
+        if pasta_temp.exists():
+            shutil.rmtree(pasta_temp)
+
+        registrar_log(
+            f"ERRO ao arquivar extrato bancário: {erro}"
+        )
+
+        raise
