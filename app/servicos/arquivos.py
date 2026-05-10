@@ -17,6 +17,7 @@ def obter_estrutura_padrao():
             "Funcionarios_Desligados",
             "Folha_Pagamento",
             "Ferias",
+            "Advertencias",
             "Controle_Ponto",
             "Treinamentos"
         ],

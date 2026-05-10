@@ -22,7 +22,8 @@ from app.setores.financeiro import (
 from app.setores.rh import (
     abrir_cadastro_funcionario,
     abrir_arquivar_folha_ponto,
-    abrir_registrar_ferias
+    abrir_registrar_ferias,
+    abrir_registrar_advertencia
 )
 
 
@@ -131,7 +132,7 @@ class AdminFlowApp:
             ("Cadastrar funcionário", lambda: abrir_cadastro_funcionario(self.root)),
             ("Arquivar folha de ponto", lambda: abrir_arquivar_folha_ponto(self.root)),
             ("Registrar férias", lambda: abrir_registrar_ferias(self.root)),
-            ("Registrar advertência", self.acao_em_desenvolvimento),
+            ("Registrar advertência", lambda: abrir_registrar_advertencia(self.root)),
             ("Mover funcionário para desligados", self.acao_em_desenvolvimento)
         ]
         self.criar_tela_setor("Recursos Humanos", acoes)

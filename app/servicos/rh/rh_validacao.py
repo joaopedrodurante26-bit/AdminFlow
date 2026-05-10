@@ -211,3 +211,44 @@ def validar_dados_ferias(dados, caminho_documento):
             return False, "O item anexado não é um arquivo."
 
     return True, ""
+
+def validar_dados_advertencia(dados, caminho_documento):
+    campos_obrigatorios = [
+        "Data da ocorrência",
+        "Nome do funcionário",
+        "Setor",
+        "Cargo",
+        "Motivo",
+        "Descrição da ocorrência",
+        "Medida adotada",
+        "Responsável pelo registro",
+        "Tipo de advertência",
+        "Gravidade"
+    ]
+
+    for campo in campos_obrigatorios:
+        if not dados.get(campo, "").strip():
+            return False, f"O campo '{campo}' é obrigatório."
+
+    if dados["Tipo de advertência"] == "Selecione":
+        return False, "Selecione o tipo de advertência."
+
+    if dados["Gravidade"] == "Selecione":
+        return False, "Selecione a gravidade."
+
+    if not validar_data(dados["Data da ocorrência"]):
+        return False, "Data da ocorrência inválida. Use DD/MM/AAAA."
+
+    if len(dados["Descrição da ocorrência"]) < 10:
+        return False, "A descrição da ocorrência está muito curta."
+
+    if caminho_documento:
+        caminho = Path(caminho_documento)
+
+        if not caminho.exists():
+            return False, "O documento anexado não foi encontrado."
+
+        if caminho.is_dir():
+            return False, "O item anexado não é um arquivo."
+
+    return True, ""
