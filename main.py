@@ -4,7 +4,7 @@ from tkinter import messagebox
 from app.setores.rh import abrir_cadastro_funcionario
 from app.setores.configuracoes import abrir_configurar_pasta_base, abrir_verificar_estrutura
 from AdminFlow.app.servicos.rh.rh_arquivos import estrutura_existe, verificar_ou_criar_estrutura
-from app.setores.financeiro import abrir_arquivar_comprovante
+from app.setores.financeiro import abrir_arquivar_comprovante, abrir_registrar_conta_a_pagar
 
 
 APP_NAME = "AdminFlow"
